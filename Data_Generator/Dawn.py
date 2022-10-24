@@ -52,6 +52,7 @@ class Dawn(Scrapper):
         flag = False
         with requests.Session() as session:
             for i in self.Dawn_links:
+                print("Now Scraping link: ", i)
                 Headers = []
                 Summary = []
                 Read_more = []
