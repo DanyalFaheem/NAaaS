@@ -22,22 +22,23 @@ class Dawn(Scrapper):
         self.Scrap_Dawn(General_CAT, Metro_CAT)
 
     def Generate_Date_links_for_Dawn(self, GC, MC):
-        End_Date = datetime.datetime.today() - datetime.timedelta(days=1)
-        Previous_Date = datetime.date(2022, 9, 13)
-        while (Previous_Date + datetime.timedelta(days=1)) < datetime.datetime.today():
-            Previous_Date = Previous_Date.strftime('%Y-%m-%d')
+        End_Date = datetime.datetime.today()
+        Previous_Date = datetime.datetime(2022, 9, 13)
+        while Previous_Date < End_Date:
+            Previous_Date_str = Previous_Date.strftime('%Y-%m-%d')
             Links = []
             for i in GC:
                 Links.append("https://www.dawn.com/newspaper/" +
 
-                                str(i)+"/"+str(Previous_Date))
+                                str(i)+"/"+str(Previous_Date_str))
 
             for i in MC:
                 Links.append("https://www.dawn.com/newspaper/" +
-                                str(i)+"/"+str(Previous_Date))
-            Previous_Date + datetime.timedelta(days=1)
+                                str(i)+"/"+str(Previous_Date_str))
+            Previous_Date += datetime.timedelta(days=1)
+            
 
-        return Links, Previous_Date
+        return Links, Previous_Date_str
 
     def Scrap_Dawn(self, GC, MC):
         path = str(datetime.datetime.strptime(
