@@ -25,12 +25,15 @@ class Scrapper:
             except ValueError as e:
                 print('\n')
                 print(e)
-
+                print(
+                    "\n\nNetwork Error, trying again in 15 seconds")
+                os.system("clear")
+                webpage = urlopen(req).read()
             except Exception as e:
                 print('\n')
                 print(e)
                 print(
-                    "\n\nWebsite blocked the request, trying again in 5 seconds")
+                    "\n\nWebsite blocked the request, trying again in 15 seconds")
                 sleep(15)  # sleep to avoid blocking
                 os.system("clear")
                 webpage = urlopen(req).read()

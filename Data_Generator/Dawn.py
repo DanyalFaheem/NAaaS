@@ -36,7 +36,7 @@ class Dawn(Scrapper):
         file = open('start_date.pkl', 'rb')
         start_date = load(file)
         file.close()
-        end_date = date(2022, 1, 1)
+        end_date = date(2021, 1, 1)
         delta = timedelta(days=1)
         while start_date >= end_date:
             self.Dawn_links, self.Previous_Date = self.Generate_Date_links_for_Dawn(
