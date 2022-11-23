@@ -1,6 +1,7 @@
 # from ast import main
 from time import sleep
 from json import dumps
+from json import load
 from kafka import KafkaProducer
 
 class Producer():
@@ -11,11 +12,18 @@ class Producer():
             value_serializer=lambda x: dumps(x).encode('utf-8')
         )
     def SendData(self):
+        with open('jsons/2021/2021-11-20/Scrapped.json') as json_file:
+            data = load(json_file)
+            self.producer.send('topic_test1', value=data)
+            sleep(1)
+            # print(type(data))
+            # print(data)
+            # print(data["Header"])
+
         for j in range(10):
             print("Iteration", j)
             data = {'counter': j}
-            self.producer.send('topic_test1', value=data)
-            sleep(1)
+            
 
 def main():
     prod_obj = Producer()
