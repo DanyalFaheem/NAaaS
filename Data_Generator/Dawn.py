@@ -6,7 +6,7 @@ import os
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
-
+import json
 
 class Dawn(Scrapper):
     def __init__(self):
@@ -82,10 +82,23 @@ class Dawn(Scrapper):
                     if count1 < len(GC):
                         Spath = path+"/"+GC[count1]+".csv"
                         dataframe.to_csv(Spath)
+                        dataframe.insert(0,"Keys",GC[count1])
+                        df_json = dataframe.to_dict()
+                        if not os.path.exists("jsons/"+path+"/"):
+                            os.makedirs("jsons/"+path+"/")
+                        with open("jsons/"+path+"/"+"Scrapped.json", 'w') as json_file:
+                                json.dump(df_json, json_file)
+                        
                         count1 += 1
                     else:
                         Spath = path+"/"+MC[count2]+".csv"
                         dataframe.to_csv(Spath)
+                        dataframe.insert(0,"Keys",MC[count2])
+                        df_json = dataframe.to_dict()
+                        if not os.path.exists("jsons/"+path+"/"):
+                            os.makedirs("jsons/"+path+"/")
+                        with open("jsons/"+path+"/"+"Scrapped.json", 'w') as json_file:
+                                json.dump(df_json, json_file)
                         count2 += 1
             start_date -= delta
             file = open('start_date.pkl', 'wb')
