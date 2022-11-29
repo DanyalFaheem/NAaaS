@@ -28,12 +28,12 @@ func main() {
 	// // seeding
 	// courses = append(courses, Course{CourseID: "2", CourseName: "GOLANG", CoursePrice: 299, Author: &Author{Fullname: "Mehmood Amjad", Website: "securiti.go"}})
 	// courses = append(courses, Course{CourseID: "4", CourseName: "Docker", CoursePrice: 399, Author: &Author{Fullname: "Mehmood Amjad", Website: "foundri.go"}})
-
 	// routing
 	r.HandleFunc("/", serveHome).Methods("GET")
 	r.HandleFunc("/SearchKeywords/{keywords}", getKeywords).Methods("GET")
 	r.HandleFunc("/SearchLocation/{location}", getLocation).Methods("GET")
 	r.HandleFunc("/SearchTime/{timeframe}", getTimeFrame).Methods("GET")
+	r.HandleFunc("/PostedData", PostData).Methods("POST")
 
 	// r.HandleFunc("/courses", getAllCourses).Methods("GET")
 	// r.HandleFunc("/course/{courseid}", getOneCourse).Methods("GET")
@@ -81,4 +81,22 @@ func getLocation(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	fmt.Println("Location : ", params["location"])
 	json.NewEncoder(w).Encode(params["location"])
+}
+func PostData(w http.ResponseWriter, r *http.Request) {
+	// Allow CORS here By * or specific origin
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content=Type", "application/json")
+	fmt.Println("Post Data")
+
+	// what if body is empty
+	if r.Body == nil {
+		json.NewEncoder(w).Encode("Please send some data")
+	}
+
+	var temp InputVars
+	data := json.NewDecoder(r.Body).Decode(&temp)
+
+	json.NewEncoder(w).Encode(data)
 }
