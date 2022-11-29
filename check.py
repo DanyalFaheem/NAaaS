@@ -3,8 +3,8 @@ import spacy
 from fuzzywuzzy import fuzz
 import re
 import pandas as pd
-import threading
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+# import threading
+# from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 nlp = spacy.load('en_core_web_sm', disable=['ner', 'textcat'])
 
@@ -141,8 +141,7 @@ class parser():
                                 cities.__setitem__(city, 1)
         self.city = max(cities, key=cities.get)
         self.cities = cities
-    def extraction_focus_time():
-        print("ABhi hm zinda hai")
+
 
     def read(self):
         # def read(self):
