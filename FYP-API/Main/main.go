@@ -26,13 +26,12 @@ type InputVars struct {
 }
 
 type initialData struct {
-	startTime string   `json:"startTime"`
-	endTime   string   `json:"endTime"`
-	Location  []string `json:"location"`
+	StartTime string   `json:"startTime"`
+	EndTime   string   `json:"endTime"`
+	Location  []string `json:"locations"`
 }
 
 // // fake DB
-var db sql.DB
 
 // // Store words
 // var words []string
@@ -49,7 +48,7 @@ func main() {
 	r.HandleFunc("/SearchLocation/{location}", getLocation).Methods("GET")
 	r.HandleFunc("/SearchTime/{timeframe}", getTimeFrame).Methods("GET")
 	r.HandleFunc("/PostedData", PostData).Methods("POST")
-
+	r.HandleFunc("/Pokemon", getInitialData).Methods("GET")
 	// r.HandleFunc("/courses", getAllCourses).Methods("GET")
 	// r.HandleFunc("/course/{courseid}", getOneCourse).Methods("GET")
 	// r.HandleFunc("/course", createOneCourse).Methods("POST")
@@ -58,23 +57,27 @@ func main() {
 
 	// listen to port
 	// log.Fatal(http.ListenAndServeTLS(":4000", "cert.pem", "key.pem", r))
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
+	// var err error
+	// db, err := sql.Open("postgres", psqlInfo)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer db.Close()
 
-	fmt.Println("Successfully connected!")
-	getInitialData()
+	// err = db.Ping()
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Println("Successfully connected!")
+
+	// db.Query("SELECT name from Province;")
+	// fmt.Println("Here")
+	// getInitialData()
+
 	log.Fatal(http.ListenAndServe(":4000", r))
+
 }
 
 // serve home route
@@ -136,29 +139,49 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func getInitialData() {
+func getInitialData(w http.ResponseWriter, r *http.Request) {
 	// w.Header().Set("Content=Type", "application/json")
 	// db, err := sql.Open("postgres", psqlInfo)
 	// rows, err := db.Query("SELECT name from Province;")
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 	// var data initialData
 	var (
-		name string
+		name      string
+		startTime string
+		endTime   string
 	)
-	var rows, err = db.Query("SELECT name from Province;")
+	rows, err := db.Query("SELECT name from Province;")
+	// fmt.Println("Here")
 	if err != nil {
 		log.Fatal(err)
 
 	}
 	defer rows.Close()
+	var poke initialData
 	for rows.Next() {
 		err := rows.Scan(&name)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(name)
+		// fmt.Println(name)
+		poke.Location = append(poke.Location, name)
 	}
-	// db.Query("Select name from Province")
-	// db.Query("Select min(focus_time) from NEWS")
-	// db.Query("Select max(focus_time) from NEWS")
-
+	rows, err = db.Query("Select min(focus_time), max(focus_time) from NEWS;")
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&startTime, &endTime)
+		if err != nil {
+			log.Fatal(err)
+		}
+		poke.StartTime = startTime
+		poke.EndTime = endTime
+	}
+	json.NewEncoder(w).Encode(poke)
 }
