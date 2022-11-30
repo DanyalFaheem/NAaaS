@@ -2,7 +2,8 @@
 <html>
 
 <head>
-    <title>Page Title</title>
+    <title>NAaaS</title>
+    <link rel="icon" type="image/x-icon" href="C:\Danyal\Work\FAST\Semester 7\Final Year Project - I\Poster\favicon_io\favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
         integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
         crossorigin="" />
@@ -12,7 +13,35 @@
 </head>
 
 <body>
-    <div id="map" style="height: 650px; width: 800px;margin: auto;"></div>
+    <div>
+    <label for="cars">Choose a district:</label>
+
+    <select name="cars" id="cars">
+        <option value="volvo">Islamabad</option>
+        <option value="saab">Bagh</option>
+        <option value="mercedes">Lahore</option>
+        <option value="audi">Karachi</option>
+    </select>
+</div>
+<br>
+<div>
+    <label for="quantity">Choose start Date</label>
+    <input type="date"">
+</div>
+<br>
+<div>
+    <label for="quantity">Choose end Date</label>
+    <input type="date"">
+</div>
+<br>
+
+<div>
+    <label for="quantity">Enter Key words:</label>
+    <input type="text">
+</div>
+<br>
+
+    <div id="map" style="height: 800px; width: 850px;margin: auto;"></div>
     <script src="script.js">
     </script>
 

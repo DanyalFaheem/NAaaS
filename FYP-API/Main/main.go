@@ -1,12 +1,22 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
+)
+
+const (
+	host     = "localhost"
+	port     = 8008
+	user     = "postgres"
+	password = "1234"
+	dbname   = "NAaaS"
 )
 
 type InputVars struct {
@@ -15,12 +25,17 @@ type InputVars struct {
 	Keywords  []string `json:"keywords"`
 }
 
+type initialData struct {
+	startTime string   `json:"startTime"`
+	endTime   string   `json:"endTime"`
+	Location  []string `json:"location"`
+}
+
 // // fake DB
-// var db []InputVars
+var db sql.DB
 
 // // Store words
 // var words []string
-
 func main() {
 	fmt.Println("Welcome to building an api inn GOLANG")
 	r := mux.NewRouter()
@@ -42,8 +57,24 @@ func main() {
 	// r.HandleFunc("/course/{courseid}", deleteOneCourse).Methods("DELETE")
 
 	// listen to port
-	log.Fatal(http.ListenAndServe(":4000", r))
 	// log.Fatal(http.ListenAndServeTLS(":4000", "cert.pem", "key.pem", r))
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Successfully connected!")
+	getInitialData()
+	log.Fatal(http.ListenAndServe(":4000", r))
 }
 
 // serve home route
@@ -71,6 +102,9 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content=Type", "application/json")
 	// grab id from request
 	params := mux.Vars(r)
+	// // db.Query("select n.*, p.* from news as n left join province as p on p.name = (select province from news where focus_time >= startTime and focus_time <= endTime);")
+	// db.Query("select n.*, p.* from news as n left join province as p on p.name = n.province and n.focus_time >= '2022-02-01' and n.focus_time <= '2022-03-27';")
+
 	fmt.Println("TimeFrame : ", params["timeframe"])
 	json.NewEncoder(w).Encode(params["timeframe"])
 }
@@ -79,6 +113,7 @@ func getLocation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content=Type", "application/json")
 	// grab id from request
 	params := mux.Vars(r)
+	// db.Query("select * from news where province=params")
 	fmt.Println("Location : ", params["location"])
 	json.NewEncoder(w).Encode(params["location"])
 }
@@ -99,4 +134,31 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 	data := json.NewDecoder(r.Body).Decode(&temp)
 
 	json.NewEncoder(w).Encode(data)
+}
+
+func getInitialData() {
+	// w.Header().Set("Content=Type", "application/json")
+	// db, err := sql.Open("postgres", psqlInfo)
+	// rows, err := db.Query("SELECT name from Province;")
+	// var data initialData
+	var (
+		name string
+	)
+	var rows, err = db.Query("SELECT name from Province;")
+	if err != nil {
+		log.Fatal(err)
+
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(name)
+	}
+	// db.Query("Select name from Province")
+	// db.Query("Select min(focus_time) from NEWS")
+	// db.Query("Select max(focus_time) from NEWS")
+
 }
