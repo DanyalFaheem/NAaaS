@@ -13,32 +13,29 @@
 </head>
 
 <body>
-    <div>
-    <label for="cars">Choose a district:</label>
+    <div id="Location">
+    <label id="labelLocation" for="location">Choose Location:</label>
 
-    <select name="cars" id="cars">
-        <option value="volvo">Islamabad</option>
-        <option value="saab">Bagh</option>
-        <option value="mercedes">Lahore</option>
-        <option value="audi">Karachi</option>
+    <select id="locations">
     </select>
 </div>
 <br>
 <div>
     <label for="quantity">Choose start Date</label>
-    <input type="date"">
+    <input type="date"  id="startDate">
 </div>
 <br>
-<div>
+<div >
     <label for="quantity">Choose end Date</label>
-    <input type="date"">
+    <input type="date" id="endDate">
 </div>
 <br>
 
-<div>
+<button type="submit" onclick="changeMap()">Submit</button>
+<!-- <div>
     <label for="quantity">Enter Key words:</label>
     <input type="text">
-</div>
+</div> -->
 <br>
 
     <div id="map" style="height: 800px; width: 850px;margin: auto;"></div>
