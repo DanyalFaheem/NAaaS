@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"github.com/rs/cors"
 )
 
 const (
@@ -20,9 +21,9 @@ const (
 )
 
 type InputVars struct {
-	Timeframe string   `json:"timeframe"`
-	Location  []string `json:"location"`
-	Keywords  []string `json:"keywords"`
+	Timeframe string `json:"timeframe"`
+	Location  string `json:"location"`
+	Keywords  string `json:"keywords"`
 }
 
 type initialData struct {
@@ -43,7 +44,7 @@ func main() {
 	// courses = append(courses, Course{CourseID: "2", CourseName: "GOLANG", CoursePrice: 299, Author: &Author{Fullname: "Mehmood Amjad", Website: "securiti.go"}})
 	// courses = append(courses, Course{CourseID: "4", CourseName: "Docker", CoursePrice: 399, Author: &Author{Fullname: "Mehmood Amjad", Website: "foundri.go"}})
 	// routing
-	r.HandleFunc("/", serveHome).Methods("GET")
+	r.HandleFunc("/", PostData).Methods("POST")
 	r.HandleFunc("/SearchKeywords/{keywords}", getKeywords).Methods("GET")
 	r.HandleFunc("/SearchLocation/{location}", getLocation).Methods("GET")
 	r.HandleFunc("/SearchTime/{timeframe}", getTimeFrame).Methods("GET")
@@ -75,15 +76,20 @@ func main() {
 	// db.Query("SELECT name from Province;")
 	// fmt.Println("Here")
 	// getInitialData()
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://127.0.0.1:5500"},
+		AllowCredentials: true,
+	})
 
-	log.Fatal(http.ListenAndServe(":4000", r))
+	handler := c.Handler(r)
+	log.Fatal(http.ListenAndServe(":4000", handler))
 
 }
 
 // serve home route
-func serveHome(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("<h1>Welcome to API</h1>"))
-}
+// func serveHome(w http.ResponseWriter, r *http.Request) {
+// 	w.Write([]byte("<h1>Welcome to API</h1>"))
+// }
 
 func getKeywords(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get Keywords")
@@ -134,9 +140,13 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var temp InputVars
-	data := json.NewDecoder(r.Body).Decode(&temp)
+	_ = json.NewDecoder(r.Body).Decode(&temp)
 
-	json.NewEncoder(w).Encode(data)
+	json.NewEncoder(w).Encode(temp)
+	fmt.Println("Keywords :", temp.Keywords)
+	fmt.Println("Location :", temp.Location)
+	fmt.Println("Time frame : ", temp.Timeframe)
+	// w.Write([]byte(temp))
 }
 
 func getInitialData(w http.ResponseWriter, r *http.Request) {
