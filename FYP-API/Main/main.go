@@ -61,7 +61,7 @@ func main() {
 	r.HandleFunc("/", PostData).Methods("POST")
 	r.HandleFunc("/SearchKeywords/{keywords}", getKeywords).Methods("GET")
 	r.HandleFunc("/SearchLocation/{location}", getLocation).Methods("GET")
-	r.HandleFunc("/SearchTime/{timeframe}", getTimeFrame).Methods("GET")
+	r.HandleFunc("/SearchNews/{timeframe}", getTimeFrame).Methods("GET")
 	r.HandleFunc("/PostedData", PostData).Methods("POST")
 	r.HandleFunc("/Pokemon", getInitialData).Methods("GET")
 	// r.HandleFunc("/courses", getAllCourses).Methods("GET")
@@ -150,9 +150,19 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 		// link           string
 		coordinates string
 	)
+	var rows *sql.Rows
 	// // db.Query("select n.*, p.* from news as n left join province as p on p.name = (select province from news where focus_time >= startTime and focus_time <= endTime);")
 	// select n.header, n.link, n.focus_time, n.focus_location, d.name from news as n left join district as d on d.name = n.focus_location and n.focus_time >= '2022-02-01' and n.focus_time <= '2022-03-27';
-	rows, err := db.Query("select distinct(n.header), n.focus_time::date, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
+	if req.Location == "" {
+		if req.StartDate != "" && req.EndDate != "" {
+			rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
+		}
+	} else if req.Location != "" && (req.EndDate == "" || req.StartDate == "") {
+		rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.district = $1 ;", req.Location)
+	} else if req.Location != "" && req.EndDate != "" && req.StartDate != "" {
+		fmt.Println("THIS QUERY WAS RAN Here")
+		rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.district = $1 and n.focus_time::date between $2 and $3 ;", req.Location, req.StartDate, req.EndDate)
+	}
 	if err != nil {
 		log.Fatal(err)
 

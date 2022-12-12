@@ -434,8 +434,8 @@ form.onsubmit = async (e) => {
     e.preventDefault();
     let formData = new FormData(form);
     let data = JSON.stringify(Object.fromEntries(formData));
-    // console.log(data)
-    response = JSON.parse(httpGet("http://localhost:4000/SearchTime/" + encodeURIComponent(data)));
+    console.log(data)
+    response = JSON.parse(httpGet("http://localhost:4000/SearchNews/" + encodeURIComponent(data)));
     // console.log(response);
     changeMap(response)
 }
