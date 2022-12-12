@@ -32,6 +32,20 @@ type initialData struct {
 	Location  []string `json:"locations"`
 }
 
+type requestDate struct {
+	StartDate string `json:"startDate"`
+	EndDate   string `json:"endDate"`
+	Location  string `json:"location"`
+}
+
+type newsData struct {
+	FocusTime     string `json:"focusTime"`
+	FocusLocation string `json:"focusLocation"`
+	Header        string `json:"header"`
+	// Link          string `json:"link"`
+	Coordinates string `json:"coordinates"`
+}
+
 // // fake DB
 
 // // Store words
@@ -77,7 +91,7 @@ func main() {
 	// fmt.Println("Here")
 	// getInitialData()
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://127.0.0.1:5500"},
+		AllowedOrigins:   []string{"http://localhost:8080"},
 		AllowCredentials: true,
 	})
 
@@ -107,15 +121,59 @@ func getKeywords(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(params["keywords"])
 }
 func getTimeFrame(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Get Time Frame")
-	w.Header().Set("Content=Type", "application/json")
+	// fmt.Println("Get Time Frame")
+	// w.Header().Set("Content=Type", "application/json")
 	// grab id from request
+	var req requestDate
 	params := mux.Vars(r)
+	param := params["timeframe"]
+	// json.NewDecoder(params["timeFrame"]).Decode(req)
+	json.Unmarshal([]byte(param), &req)
+	fmt.Println(req)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content=Type", "application/json")
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	// var data initialData
+	var (
+		header         string
+		focus_time     string
+		focus_location string
+		// link           string
+		coordinates string
+	)
 	// // db.Query("select n.*, p.* from news as n left join province as p on p.name = (select province from news where focus_time >= startTime and focus_time <= endTime);")
-	// db.Query("select n.*, p.* from news as n left join province as p on p.name = n.province and n.focus_time >= '2022-02-01' and n.focus_time <= '2022-03-27';")
+	// select n.header, n.link, n.focus_time, n.focus_location, d.name from news as n left join district as d on d.name = n.focus_location and n.focus_time >= '2022-02-01' and n.focus_time <= '2022-03-27';
+	rows, err := db.Query("select distinct(n.header), n.focus_time::date, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
+	if err != nil {
+		log.Fatal(err)
 
-	fmt.Println("TimeFrame : ", params["timeframe"])
-	json.NewEncoder(w).Encode(params["timeframe"])
+	}
+	defer rows.Close()
+	var news []newsData
+	for rows.Next() {
+		err := rows.Scan(&header, &focus_time, &focus_location, &coordinates)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// fmt.Println(header, focus_time)
+		var temp newsData
+		temp.Header = header
+		temp.FocusLocation = focus_location
+		temp.FocusTime = focus_time[:10]
+		temp.Coordinates = coordinates
+		news = append(news, temp)
+		// fmt.Println("TimeFrame : ", temp)
+	}
+	json.NewEncoder(w).Encode(news)
 }
 func getLocation(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get Location")
@@ -150,9 +208,10 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 }
 
 func getInitialData(w http.ResponseWriter, r *http.Request) {
-	// w.Header().Set("Content=Type", "application/json")
-	// db, err := sql.Open("postgres", psqlInfo)
-	// rows, err := db.Query("SELECT name from Province;")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content=Type", "application/json")
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
@@ -167,7 +226,7 @@ func getInitialData(w http.ResponseWriter, r *http.Request) {
 		startTime string
 		endTime   string
 	)
-	rows, err := db.Query("SELECT name from Province;")
+	rows, err := db.Query("SELECT distinct(district) from news where district is not null;")
 	// fmt.Println("Here")
 	if err != nil {
 		log.Fatal(err)
@@ -183,15 +242,17 @@ func getInitialData(w http.ResponseWriter, r *http.Request) {
 		// fmt.Println(name)
 		poke.Location = append(poke.Location, name)
 	}
-	rows, err = db.Query("Select min(focus_time), max(focus_time) from NEWS;")
+	rows, err = db.Query("Select min(focus_time)::date, max(focus_time)::date from NEWS;")
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&startTime, &endTime)
 		if err != nil {
 			log.Fatal(err)
 		}
-		poke.StartTime = startTime
-		poke.EndTime = endTime
+		startTime = startTime[:10]
+		endTime = endTime[:10]
 	}
+	poke.StartTime = startTime
+	poke.EndTime = endTime
 	json.NewEncoder(w).Encode(poke)
 }

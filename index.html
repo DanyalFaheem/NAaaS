@@ -3,7 +3,8 @@
 
 <head>
     <title>NAaaS</title>
-    <link rel="icon" type="image/x-icon" href="C:\Danyal\Work\FAST\Semester 7\Final Year Project - I\Poster\favicon_io\favicon.ico">
+    <link rel="icon" type="image/x-icon"
+        href="C:\Danyal\Work\FAST\Semester 7\Final Year Project - I\Poster\favicon_io\favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
         integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
         crossorigin="" />
@@ -13,30 +14,35 @@
 </head>
 
 <body>
-    <div id="Location">
-    <label id="labelLocation" for="location">Choose Location:</label>
+    <form id="form">
+        <div id="Location">
+            <label id="labelLocation" for="location">Choose Location:</label>
 
-    <select id="locations">
-    </select>
-</div>
-<br>
-<div>
-    <label for="quantity">Choose start Date</label>
-    <input type="date"  id="startDate">
-</div>
-<br>
-<div >
-    <label for="quantity">Choose end Date</label>
-    <input type="date" id="endDate">
-</div>
-<br>
+            <select id="locations" name="location">
+                <option value="" disabled selected>location</option>
+            </select>
+        </div>
+        <br>
+        <div>
+            <label for="quantity">Choose start Date</label>
+            <input type="date" id="startDate" name="startDate">
+        </div>
+        <br>
+        <div>
+            <label for="quantity">Choose end Date</label>
+            <input type="date" id="endDate" name="endDate">
+        </div>
+        <input type="submit" value="Submit">
+        
+    </form>
+    <br>
 
-<button type="submit" onclick="changeMap()">Submit</button>
-<!-- <div>
+    <button type="submit" onclick="changeMap()">Submit</button>
+    <!-- <div>
     <label for="quantity">Enter Key words:</label>
     <input type="text">
 </div> -->
-<br>
+    <br>
 
     <div id="map" style="height: 800px; width: 850px;margin: auto;"></div>
     <script src="script.js">
