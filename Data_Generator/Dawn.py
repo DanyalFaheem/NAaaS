@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 import json
+import pathlib
 
 class Dawn(Scrapper):
     def __init__(self):
@@ -57,6 +58,8 @@ class Dawn(Scrapper):
                     Headers = []
                     Summary = []
                     Read_more = []
+                    Links = []
+                    Categories = []
                     webpage = self.req(i)
                     soup = BeautifulSoup(webpage, 'html.parser')
                     for story in soup.findAll('article'):
@@ -75,8 +78,11 @@ class Dawn(Scrapper):
                                     links[0]['href'])
                                 Read_more.append(detail)
                                 read_more = True
+                        category = pathlib.Path(i).parts[-2]
+                        Categories.append(category)
+                        Links.append(links[0]['href'])
                     dictionary = {'Header': Headers,
-                                  'Summary': Summary, 'Detail': Read_more}
+                                  'Summary': Summary, 'Detail': Read_more, 'Link': Links, 'Category': Categories}
                     dataframe = pd.DataFrame(dictionary)
 
                     if count1 < len(GC):
@@ -108,6 +114,7 @@ class Dawn(Scrapper):
     def extract_readmore(self, link):
         detail = ""
         webpage = self.req(link)
+        # print(link)
         soup = BeautifulSoup(webpage, 'html.parser')
         for reading in soup.find_all('article'):
             for p in reading.find_all("div",  attrs={"class": "story__content overflow-hidden text-4 sm:text-4.5 pt-1 mt-1"}):

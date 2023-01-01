@@ -412,7 +412,7 @@ map.fitBounds(geoJson.getBounds())
 document.addEventListener("DOMContentLoaded", function () {
     bodyData = httpGet("http://localhost:4000/Pokemon")
     bodyData = JSON.parse(bodyData)
-    console.log(typeof(bodyData), bodyData)
+    console.log(typeof (bodyData), bodyData)
     var select = document.getElementById("locations");
     for (var i = 0; i < bodyData["locations"].length; i++) {
         var el = document.createElement("option");
@@ -446,23 +446,43 @@ function changeMap(responseData) {
         boundary: mapData,
         attribution: osmAttribution
     }).addTo(map);
-    
-    
-    
+
+    var locations = []
+
     geoJson = L.geoJson(mapData);
-    
+
     map.fitBounds(geoJson.getBounds())
     console.log(responseData)
-    for (var i = 0; i < responseData.length; i++) {
-        try {
-            areaData = JSON.parse(responseData[i]["coordinates"])
-            geoJson = L.geoJson(areaData).addTo(map);
+    if (responseData != null) {
+        for (var i = 0; i < responseData.length; i++) {
+            try {
+                areaData = JSON.parse(responseData[i]["coordinates"])
+                if (!locations.includes(responseData[i]["focusLocation"])) {
+                    geoJson = L.geoJson(areaData).addTo(map);
+                    locations.push(responseData[i]["focusLocation"])
+                }
+                areaData = areaData.geometry.coordinates[0];
+                randomX = areaData[Math.floor(Math.random() * areaData.length)]
+                randomY = areaData[Math.floor(Math.random() * areaData.length)]
+                var coordinate = [];
+                for (var j = 0; j < randomX.length; j++) {
+                    coordinate.push((randomX[j] + randomY[j])/2)
+                }
+                // console.log(randomX, randomY, coordinate, typeof(coordinate))
+
+                var marker = L.marker([coordinate[1], coordinate[0]]).addTo(map);
+                // var marker = L.marker([randomX[1], randomX[0]]).addTo(map);
+                // console.log("Marker Added", i);
+            }
+            catch {
+                // console.log(areaData);
+            }
         }
-        catch {
-            // console.log(areaData);
+        if (locations.length == 1) {
+            map.fitBounds(geoJson.getBounds());
         }
     }
+    else {
 
-    // map.fitBounds(geoJson.getBounds());
-
+    }
 }
