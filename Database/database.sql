@@ -197,6 +197,7 @@ CREATE TABLE NEWS(
    summary TEXT,
    details TEXT,
    link TEXT,
+   category, VARCHAR(20),
    focus_time TIMESTAMP,
    focus_location VARCHAR(50),
    province VARCHAR(50),

@@ -470,7 +470,7 @@ function changeMap(responseData) {
                 }
                 // console.log(randomX, randomY, coordinate, typeof(coordinate))
 
-                var marker = L.marker([coordinate[1], coordinate[0]]).addTo(map);
+                var marker = L.marker([coordinate[1], coordinate[0]]).addTo(map).bindPopup(`<a target="_blank" href=${responseData[i]["link"]}>${responseData[i]["header"]}</a>`,{closeOnClick: false, autoClose: false});
                 // var marker = L.marker([randomX[1], randomX[0]]).addTo(map);
                 // console.log("Marker Added", i);
             }
