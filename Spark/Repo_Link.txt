@@ -1,0 +1,5 @@
+// Spark link with multiple other containers
+git clone https://github.com/Wittline/apache-spark-docker.git
+
+// Image for pyspark on jupyter nb
+docker run -it -rm -p 8888:8888 jupyter/pyspark-notebook
