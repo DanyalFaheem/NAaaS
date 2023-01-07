@@ -23,11 +23,3 @@ services:
     environment:
       SPARK_WORKER_CORES: 1
       SPARK_WORKER_MEMORY: 1g
-  pyspark:
-    image: bitnami/minideb:stretch
-    container_name: pyspark
-    volumes:
-      - ./:/app
-      - /app/tmp
-    links:
-      - spark-master:spark
