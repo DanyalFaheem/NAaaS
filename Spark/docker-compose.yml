@@ -13,21 +13,21 @@ services:
     depends_on:
       - spark-master
     environment:
-      SPARK_WORKER_CORES: 2
-      SPARK_WORKER_MEMORY: 2g
+      SPARK_WORKER_CORES: 1
+      SPARK_WORKER_MEMORY: 1g
   spark-worker-2:
     image: bitnami/spark:latest
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     depends_on:
       - spark-master
     environment:
-      SPARK_WORKER_CORES: 2
-      SPARK_WORKER_MEMORY: 2g
+      SPARK_WORKER_CORES: 1
+      SPARK_WORKER_MEMORY: 1g
   pyspark:
-    image: jupyter/pyspark-notebook:latest
-    environment:
-      - PYSPARK_ALLOW_INSECURE_GATEWAY=1
-    ports:
-      - "8888:8888"
+    image: bitnami/minideb:stretch
+    container_name: pyspark
     volumes:
-      - .:/app
+      - ./:/app
+      - /app/tmp
+    links:
+      - spark-master:spark
