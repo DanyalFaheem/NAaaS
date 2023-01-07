@@ -12,6 +12,9 @@ import datefinder
 import numpy as np
 import csv
 import os
+from pyspark.sql import *
+from pyspark import *
+
 
 nlp = spacy.load('en_core_web_sm', disable=['ner', 'textcat'])
 
@@ -272,24 +275,42 @@ class parser():
 
 
 
-def parse():
+def main():
     # sutime = SUTime()
     li = []
     Parser = parser()
-    for filename in glob.iglob(r'islamabad.csv', recursive=True):
-        path = pathlib.PurePath(filename)
-        fileName = path.name[:-4]
-        df = pd.read_csv(filename, index_col=None, header=0, dtype="string")
+    # sc = SparkContext(appName="MyApp")
+    import findspark
+    findspark.init()
+    spark = SparkSession.builder.appName("NAaaS").getOrCreate()
+    print("Code ran till here 5")   
+    print("SPARK: ", spark)
+    # for filename in glob.iglob(r'islamabad.csv', recursive=True):
+    # df = spark.read.csv(r"/opt/bitnami/spark/parser/Parser/islamabad.csv", header=True, inferSchema=True)
+        # path = pathlib.PurePath(filename)
+        # print("Code ran till here 0")   
+        # fileName = path.name[:-4]
+    df = pd.read_csv(r"islamabad.csv", index_col=None, header=0, dtype="string")
         # print(df.to_markdown())
-        df['Creation_Date'] = path.parent.name
+        # df['Creation_Date'] = path.parent.name
         # df['Link'] = "https://www.dawn.com/newspaper/" + fileName + "/" + path.parent.name
-        li.append(df)
-        df = pd.concat(li, axis=0, ignore_index=True)
-        for i in range(len(df)):
-            # print(list(df.loc[i])[5])
-            results = dict()
-            city = Parser.read(df.loc[i])   
-            print(city)
+        # li.append(df)
+        # df = pd.concat(li, axis=0, ignore_index=True)
+    rows = df.to_dict('records')
+    # rdd = df.rdd
+    rdd = spark.sparkContext.parallelize(rows)
+        # # print(rdd.collect())
+    # rdd = df.rdd
+    print("Code ran till here 1")
+    result = rdd.map(Parser.read)
+    print("Code ran till here 2")
+    print(result.collect())
+    spark.stop()
+        # for i in range(len(df)):
+        #     # print(list(df.loc[i])[5])
+        #     # results = dict()
+        #     city = Parser.read(df.loc[i])   
+        #     print(city)
     #         if city != "null":
     #             results = Parser.Get_Time(list(df.loc[i]), sutime, results)
     #             results["focusLocation"] = city

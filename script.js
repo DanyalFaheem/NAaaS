@@ -483,6 +483,6 @@ function changeMap(responseData) {
         }
     }
     else {
-
+        alert("No news found within the selected parameters. Please try again.")
     }
 }
