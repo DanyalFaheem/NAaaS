@@ -12,14 +12,12 @@ import pandas as pd
 import glob
 import pathlib
 import json
-# from sutime import SUTime
+from sutime import SUTime
 from datetime import datetime
 import datefinder
 import numpy as np
 import csv
 import os
-from pyspark.sql import *
-from pyspark import *
 from timetag import TimeTag
 
 nlp = spacy.load('en_core_web_sm', disable=['ner', 'textcat'])
@@ -253,107 +251,77 @@ class parser():
         details = '\n'.join(lines)
         detailsParse = sutime.parse(details, reference_date=data[6])
         detailsParse = self.addTextType(detailsParse, "Details")
+        # Creat tags of all the elements and combine into one
         
         tags = headerParse + summaryParse + detailsParse
         try:
+            # Assign weights to tags
+
             tags = self.createTags(tags)
             tags = sorted(tags, key=lambda x: x.weight, reverse=True)
+            # Use the highest weighted tag as focusTime
             timeData["focusTime"] = tags[0].date.date().strftime('%Y-%m-%d')
         except:
+            # If no tags found, assign creation date as focusTime
             timeData["focusTime"] = data[6]
         
+        # Create the rest of the dictionary using the text and tags of each
         timeData["CreationDate"] = data[6]
         
-        # timeData["Header"] = dict()
-        # timeData["Header"]["Text"] = data[1]
-        # timeData["Header"]["Tags"] = headerParse
+        timeData["Header"] = dict()
+        timeData["Header"]["Text"] = data[1]
+        timeData["Header"]["Tags"] = headerParse
         
-        # timeData['Summary'] = dict()
-        # timeData['Summary']["Text"] = data[2]
-        # timeData['Summary']["Tags"] = summaryParse
+        timeData['Summary'] = dict()
+        timeData['Summary']["Text"] = data[2]
+        timeData['Summary']["Tags"] = summaryParse
         
-        # timeData['Details'] = dict()
-        # timeData['Details']["Text"] = details
-        # timeData['Details']["Tags"] = detailsParse
+        timeData['Details'] = dict()
+        timeData['Details']["Text"] = details
+        timeData['Details']["Tags"] = detailsParse
 
-        # timeData['Link'] = data[4]
-        # timeData['Category'] = data[5]
+        timeData['Link'] = data[4]
+        timeData['Category'] = data[5]
         return timeData
 
+    # Main function which executes the get location to extract focus location
     def read(self, dataFrame):
         self.Get_location(dataFrame["Detail"], dataFrame["Header"])
         return self.city
 
 
-    def informationExtractor(self, dataframe):
-            results = dict()
-            city = self.read(dataframe)
-            results["focusLocation"] = city
-            print("The Results from the parser:")
-            print(results)
-            # if city != "null":
-            #     results = self.Get_Time(list(dataframe), results)                
-            #     results["focusLocation"] = city
-            #     resultsDF = pd.DataFrame(results)
-            #     resultsDF = resultsDF.transpose()
-            #     del resultsDF["Tags"]
-            #     resultsDF = resultsDF.transpose()
-            #     print(resultsDF.to_markdown())
-
-            return city
-
-
 def main():
-    # sutime = SUTime()
+    # Instantiate SUTime and Parser
+    sutime = SUTime()
     li = []
     Parser = parser()
-    # sc = SparkContext(appName="MyApp")
-    # Find spark library to automatically find and start the Spark instance that is installed on the system, 
-    # without having to manually specify the path to the Spark home directory
-    import findspark
-    findspark.init()
-    spark = SparkSession.builder.appName("NAaaS").getOrCreate()
-    print("Code ran till here 5")   
-    print("SPARK: ", spark)
-    filename = r'islamabad.csv'
-    # for filename in glob.iglob(r'islamabad.csv', recursive=True):
-    # df = spark.read.csv(r"/opt/bitnami/spark/parser/Parser/islamabad.csv", header=True, inferSchema=True)
-    df = pd.read_csv(filename, index_col=None, header=0, dtype="string")
-    # path = pathlib.PurePath(filename)
-    # df['Creation_Date'] = path.parent.name
-        # df['Link'] = "https://www.dawn.com/newspaper/" + fileName + "/" + path.parent.name
-        # li.append(df)
-        # df = pd.concat(li, axis=0, ignore_index=True)
-    rows = df.to_dict('records')
-    # rdd = df.rdd
-    rdd = spark.sparkContext.parallelize(rows)
-        # # print(rdd.collect())
-    # rdd = df.rdd
-    print("Code ran till here 1")
-    result = rdd.map(Parser.informationExtractor)
-    print("Code ran till here 2")
-    print(result.collect())
-    # rdd.foreach(Parser.read)
-    spark.stop()
-        # for i in range(len(df)):
-        #     # print(list(df.loc[i])[5])
-        #     # results = dict()
-        #     city = Parser.read(df.loc[i])   
-        #     print(city)
-    #         if city != "null":
-    #             results = Parser.Get_Time(list(df.loc[i]), sutime, results)
-    #             results["focusLocation"] = city
-    #             resultsDF = pd.DataFrame(results)
-    #             resultsDF = resultsDF.transpose()
-    #             del resultsDF["Tags"]
-    #             resultsDF = resultsDF.transpose()
-    #             # resultsDF = resultsDF.iloc[:, 1:]
-    #             # print(resultsDF.to_markdown())
-    #             # print(resultsDF.head(1))
-    #             resultsDF.to_csv("Results.csv", mode='a', header=not os.path.exists("Results.csv"), index=False)
-    #         else:
-    #             continue
-    # os.remove("Results.csv")
-    # # print(df.head(1))
+    # Read files one by one
+    for filename in glob.iglob(r'..\Scrapper\2022\2022-12-23\business.csv', recursive=True):
+        path = pathlib.PurePath(filename)
+        fileName = path.name[:-4]
+        df = pd.read_csv(filename, index_col=None, header=0, dtype="string")
+        df['Creation_Date'] = path.parent.name
+
+        li.append(df)
+        df = pd.concat(li, axis=0, ignore_index=True)
+        # Create a major dataframe
+        for i in range(len(df)):
+            results = dict()
+            # Extract focus location
+            city = Parser.read(df.loc[i])   
+            # Only extract focus time if location found
+            if city != "null":
+                # Extract focus time and save to dictionary
+                results = Parser.Get_Time(list(df.loc[i]), sutime, results)
+                results["focusLocation"] = city
+                resultsDF = pd.DataFrame(results)
+                resultsDF = resultsDF.transpose()
+                del resultsDF["Tags"]
+                resultsDF = resultsDF.transpose()
+                # Save dataframe to file
+                resultsDF.to_csv("Results.csv", mode='a', header=not os.path.exists("Results.csv"), index=False)
+            else:
+                continue
+
 
 main()

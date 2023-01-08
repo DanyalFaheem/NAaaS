@@ -87,7 +87,7 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 	var req requestDate
 	params := mux.Vars(r)
 	param := params["timeframe"]
-	// json.NewDecoder(params["timeFrame"]).Decode(req)
+
 	json.Unmarshal([]byte(param), &req)
 	fmt.Println(req)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -102,7 +102,6 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	defer db.Close()
-	// var data initialData
 	var (
 		header         string
 		focus_time     string
@@ -112,8 +111,6 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 		coordinates    string
 	)
 	var rows *sql.Rows
-	// // db.Query("select n.*, p.* from news as n left join province as p on p.name = (select province from news where focus_time >= startTime and focus_time <= endTime);")
-	// select n.header, n.link, n.focus_time, n.focus_location, d.name from news as n left join district as d on d.name = n.focus_location and n.focus_time >= '2022-02-01' and n.focus_time <= '2022-03-27';
 	if req.Location == "" {
 		if req.StartDate != "" && req.EndDate != "" {
 			rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
@@ -135,7 +132,6 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		// fmt.Println(header, focus_time)
 		var temp newsData
 		temp.Header = header
 		temp.FocusLocation = focus_location
@@ -144,7 +140,6 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 		temp.Category = category
 		temp.Link = link
 		news = append(news, temp)
-		// fmt.Println("TimeFrame : ", temp)
 	}
 	json.NewEncoder(w).Encode(news)
 }
@@ -155,7 +150,6 @@ func getLocation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content=Type", "application/json")
 	// grab id from request
 	params := mux.Vars(r)
-	// db.Query("select * from news where province=params")
 	fmt.Println("Location : ", params["location"])
 	json.NewEncoder(w).Encode(params["location"])
 }
@@ -181,7 +175,6 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Keywords :", temp.Keywords)
 	fmt.Println("Location :", temp.Location)
 	fmt.Println("Time frame : ", temp.Timeframe)
-	// w.Write([]byte(temp))
 }
 
 // Function to get all the data from the user in the initialData struct and generate a query based on that data
@@ -205,7 +198,6 @@ func getInitialData(w http.ResponseWriter, r *http.Request) {
 		endTime   string
 	)
 	rows, err := db.Query("SELECT distinct(district) from news where district is not null;")
-	// fmt.Println("Here")
 	if err != nil {
 		log.Fatal(err)
 
@@ -217,7 +209,6 @@ func getInitialData(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		// fmt.Println(name)
 		poke.Location = append(poke.Location, name)
 	}
 	rows, err = db.Query("Select min(focus_time)::date, max(focus_time)::date from NEWS;")
