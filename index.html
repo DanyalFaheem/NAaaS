@@ -1,93 +1,102 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-   <head>
-      <meta charset="utf-8">
-      <title>NAaaS what you'r looking for</title>
-      <link rel="stylesheet" href="Style.css">
-      <link rel="icon" type="image/x-icon"
+
+<head>
+    <meta charset="utf-8">
+    <title>NAaaS what you'r looking for</title>
+    <link rel="stylesheet" href="Style.css">
+    <link rel="icon" type="image/x-icon"
         href="C:\Danyal\Work\FAST\Semester 7\Final Year Project - I\Poster\favicon_io\favicon.ico">
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
         integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
         crossorigin="" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-      <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
-      integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
-      crossorigin=""></script>
-   </head>
-   <body>
-      <nav>
-         <div class="menu-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+        integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+        crossorigin=""></script>
+</head>
+
+<body>
+    <nav>
+        <div class="menu-icon">
             <span class="fas fa-bars"></span>
-         </div>
-         <div class="logo">
+        </div>
+        <div class="logo">
             NAaaS
-         </div>
-         <div class="nav-items">
+        </div>
+        <div class="nav-items">
             <li><a href="#">Home</a></li>
             <li><a href="#">About</a></li>
             <li><a href="#">Contact</a></li>
             <li><a href="#">Feedback</a></li>
-         </div>
-      </nav>
-      <form action="#" id="header-search-people" class="form-area" novalidate="novalidate" autocomplete="off">
-         <div class="row">
-             <div class="col-md-10">
-                 <div class="styled-input wide multi">
-                     <div>
-                        <div>
-                           <input type="date" id="startDate" name="startDate" autocomplete="off" data-placeholder-focus="false" required>
-                           <label>start Date</label>
-                       </div> 
-                  
-                     </div>
+        </div>
+    </nav>
+    <form action="#" id="header-search-people" class="form-area" novalidate="novalidate" autocomplete="off">
+        <div class="row">
+            <div class="col-md-10">
+                <div class="styled-input wide multi">
                     <div>
                         <div>
-                           <input type="date" id="endDate" name="endDate" autocomplete="off" data-placeholder-focus="false" required>
-                           <label>end Date</label>
+                            <input type="date" id="startDate" name="startDate" autocomplete="off"
+                                data-placeholder-focus="false" required>
+                            <label>start Date</label>
                         </div>
-                     </div>
-                     <div>
+
+                    </div>
+                    <div>
+                        <div>
+                            <input type="date" id="endDate" name="endDate" autocomplete="off"
+                                data-placeholder-focus="false" required>
+                            <label>end Date</label>
+                        </div>
+                    </div>
+                    <div>
                         <div id="Location">
-                           <input type="text" name="locations" id="locations" autocomplete="off" data-placeholder-focus="false" required />
-                           <label id="locations">Location:</label>
+                            <!-- <input type="text" name="locations" autocomplete="off" data-placeholder-focus="false"
+                                required /> -->
+                            <label>Location:</label>
+                            <select id="locations" name="location">
+                                <option value="" disabled selected>Location</option>
+                            </select>
                         </div>
-                     </div>
-                 </div>
-             </div>
-             <div class="col-md-2 no-pad-left-10">
-                 <button type="submit" class="primary-btn serach-btn" id="submit_btn">SEARCH</button>
-             </div>
-         </div>
-       </form>
-      <script>
-         const menuBtn = document.querySelector(".menu-icon span");
-         const searchBtn = document.querySelector(".search-icon");
-         const cancelBtn = document.querySelector(".cancel-icon");
-         const items = document.querySelector(".nav-items");
-         const form = document.querySelector("form");
-         menuBtn.onclick = ()=>{
-           items.classList.add("active");
-           menuBtn.classList.add("hide");
-           searchBtn.classList.add("hide");
-           cancelBtn.classList.add("show");
-         }
-         cancelBtn.onclick = ()=>{
-           items.classList.remove("active");
-           menuBtn.classList.remove("hide");
-           searchBtn.classList.remove("hide");
-           cancelBtn.classList.remove("show");
-           form.classList.remove("active");
-           cancelBtn.style.color = "#ff3d00";
-         }
-         searchBtn.onclick = ()=>{
-           form.classList.add("active");
-           searchBtn.classList.add("hide");
-           cancelBtn.classList.add("show");
-         }
-      </script>
-      <div id="map" style="height: 800px; width: 850px;margin: auto;"></div>
-      <script src="script.js">
-      </script>
-   </body>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 no-pad-left-10">
+                <button type="submit" class="primary-btn serach-btn" id="submit_btn">SEARCH</button>
+            </div>
+        </div>
+    </form>
+    <script>
+        const menuBtn = document.querySelector(".menu-icon span");
+        const searchBtn = document.querySelector(".search-icon");
+        const cancelBtn = document.querySelector(".cancel-icon");
+        const items = document.querySelector(".nav-items");
+        const form = document.querySelector("form");
+        menuBtn.onclick = () => {
+            items.classList.add("active");
+            menuBtn.classList.add("hide");
+            searchBtn.classList.add("hide");
+            cancelBtn.classList.add("show");
+        }
+        cancelBtn.onclick = () => {
+            items.classList.remove("active");
+            menuBtn.classList.remove("hide");
+            searchBtn.classList.remove("hide");
+            cancelBtn.classList.remove("show");
+            form.classList.remove("active");
+            cancelBtn.style.color = "#ff3d00";
+        }
+        searchBtn.onclick = () => {
+            form.classList.add("active");
+            searchBtn.classList.add("hide");
+            cancelBtn.classList.add("show");
+        }
+    </script>
+    <div id="map" style="height: 800px; width: 850px;margin: auto;"></div>
+    <script src="script.js">
+    </script>
+</body>
+
 </html>

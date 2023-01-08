@@ -410,7 +410,7 @@ geoJson = L.geoJson(mapData);
 map.fitBounds(geoJson.getBounds())
 
 document.addEventListener("DOMContentLoaded", function () {
-    bodyData = httpGet("http://localhost:4000/Pokemon")
+    bodyData = httpGet("http://localhost:4000/getData")
     bodyData = JSON.parse(bodyData)
     console.log(typeof (bodyData), bodyData)
     var select = document.getElementById("locations");
@@ -442,6 +442,13 @@ form.onsubmit = async (e) => {
 
 
 function changeMap(responseData) {
+
+    map.eachLayer(function(layer) {
+        if (!!layer.toGeoJSON) {
+          map.removeLayer(layer);
+        }
+      });
+
     var osm = L.TileLayer.boundaryCanvas(osmUrl, {
         boundary: mapData,
         attribution: osmAttribution
