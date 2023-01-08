@@ -1,3 +1,8 @@
+'''
+This file is the main part of our system where the parser imports modules from other files.
+It also contains the driver class that runs our information extraction module.
+Spark uses this file to distribute workload over its workers
+'''
 # Importing modules for Temporal extraction 
 from nltk.stem.wordnet import WordNetLemmatizer
 import spacy
@@ -15,33 +20,11 @@ import csv
 import os
 from pyspark.sql import *
 from pyspark import *
-
+from timetag import TimeTag
 
 nlp = spacy.load('en_core_web_sm', disable=['ner', 'textcat'])
 
-
-class TimeTag:
-    def __init__(self, date, textType, appearence, count):
-        self.date = date
-        self.textType = textType
-        self.appearence = appearence
-        self.count = count
-        self.weight = 0.0
-        self.calculateWeight()
-
-    def calculateWeight(self):
-        if self.textType == "Header":
-            self.weight = 10 * (1/self.appearence) * self.count
-        elif self.textType == "Summary":
-            self.weight = 5 * (1/self.appearence) * self.count
-        elif self.textType == "Details":
-            self.weight = 2 * (1/self.appearence) * self.count
-    
-    def __repr__(self):
-        print({"date": self.date, "weight": self.weight, "count": self.count, "type": self.textType})
-
-
-
+# Main parser class that handles all the information extraction
 class parser():
     def __init__(self):
         self.index = {}
@@ -135,6 +118,7 @@ class parser():
             newtags.append(TimeTag(tagValues[i], newTags[i]["textType"], newTags[i]["start"], counts[i]))
         return newtags
 
+    # Function adds another element to the Timetags with the text type i.e header, summary or detail
     def addTextType(self, tags, textType):
         for tag in tags:
             tag["textType"] = textType
@@ -236,9 +220,9 @@ class parser():
         # Droping NULL rows
         df = df.dropna()
         # Extracting location col
-        # df = df["Locations"]
+        # Only keeping locations that are actually present in our database
         df["Locations"] = df["Locations"].apply(lambda x: x.upper())
-        # print(df["Locations"])
+        # Check if the extracted location is present in our database
         if df[df["Locations"] == self.city.upper()].empty:
             if self.city != "null":
                 flag = False
@@ -253,16 +237,16 @@ class parser():
                 self.city = "null"
         self.cities = cities
 
+    # Our main focus time extraction function. Takes in a dataframe of news article and returns the focus location in a dictionary
     def Get_Time(self, data, sutime, timeData):
         tags = []
-        # timeData[data[0]] = dict()
-
+        # Parse the header, summary and details individually
         headerParse = sutime.parse(data[1], reference_date=data[6])
         headerParse = self.addTextType(headerParse, "Header")
         
         summaryParse = sutime.parse(data[2], reference_date=data[6])
         summaryParse = self.addTextType(summaryParse, "Summary")
-        
+        #  Remove the publication date from the details so as to not interfere with our algorithm
         details = data[3]
         lines = details.split('\n')
         del lines[-2]
@@ -271,10 +255,8 @@ class parser():
         detailsParse = self.addTextType(detailsParse, "Details")
         
         tags = headerParse + summaryParse + detailsParse
-        # print(tags)
         try:
             tags = self.createTags(tags)
-        # print(tags)
             tags = sorted(tags, key=lambda x: x.weight, reverse=True)
             timeData["focusTime"] = tags[0].date.date().strftime('%Y-%m-%d')
         except:
@@ -299,8 +281,6 @@ class parser():
         return timeData
 
     def read(self, dataFrame):
-
-        # print(dataFrame)
         self.Get_location(dataFrame["Detail"], dataFrame["Header"])
         return self.city
 
@@ -312,6 +292,7 @@ def main():
     li = []
     Parser = parser()
     # sc = SparkContext(appName="MyApp")
+    
     import findspark
     findspark.init()
     spark = SparkSession.builder.appName("NAaaS").getOrCreate()
@@ -328,15 +309,16 @@ def main():
         # df['Link'] = "https://www.dawn.com/newspaper/" + fileName + "/" + path.parent.name
         # li.append(df)
         # df = pd.concat(li, axis=0, ignore_index=True)
-    rows = df.to_dict('records')
+    rows = df['Header'].to_dict('records')
     # rdd = df.rdd
     rdd = spark.sparkContext.parallelize(rows)
         # # print(rdd.collect())
     # rdd = df.rdd
+    print(rdd.glom.collect())
     print("Code ran till here 1")
-    result = rdd.map(Parser.read)
+    # result = rdd.map(Parser.read)
     print("Code ran till here 2")
-    print(result.collect())
+    # print(result.collect())
     spark.stop()
         # for i in range(len(df)):
         #     # print(list(df.loc[i])[5])
