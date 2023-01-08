@@ -1,3 +1,4 @@
+// Utilizing Boundary Canvas function from: https://github.com/aparshin/leaflet-boundary-canvas
 (function () {
 
     'use strict';
