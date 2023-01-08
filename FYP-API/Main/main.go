@@ -20,6 +20,7 @@ const (
 	dbname   = "NAaaS"
 )
 
+// Defining different structs that'll be used in the api
 type InputVars struct {
 	Timeframe string `json:"timeframe"`
 	Location  string `json:"location"`
@@ -47,84 +48,42 @@ type newsData struct {
 	Coordinates   string `json:"coordinates"`
 }
 
-// // fake DB
-
-// // Store words
-// var words []string
 func main() {
 	fmt.Println("Welcome to building an api inn GOLANG")
 	r := mux.NewRouter()
 
-	// // seeding
-	// courses = append(courses, Course{CourseID: "2", CourseName: "GOLANG", CoursePrice: 299, Author: &Author{Fullname: "Mehmood Amjad", Website: "securiti.go"}})
-	// courses = append(courses, Course{CourseID: "4", CourseName: "Docker", CoursePrice: 399, Author: &Author{Fullname: "Mehmood Amjad", Website: "foundri.go"}})
 	// routing
 	r.HandleFunc("/", PostData).Methods("POST")
+	// Get Requests
 	r.HandleFunc("/SearchKeywords/{keywords}", getKeywords).Methods("GET")
 	r.HandleFunc("/SearchLocation/{location}", getLocation).Methods("GET")
 	r.HandleFunc("/SearchNews/{timeframe}", getTimeFrame).Methods("GET")
+	r.HandleFunc("/getData", getInitialData).Methods("GET")
+	// Post Requests
 	r.HandleFunc("/PostedData", PostData).Methods("POST")
-	r.HandleFunc("/Pokemon", getInitialData).Methods("GET")
-	// r.HandleFunc("/courses", getAllCourses).Methods("GET")
-	// r.HandleFunc("/course/{courseid}", getOneCourse).Methods("GET")
-	// r.HandleFunc("/course", createOneCourse).Methods("POST")
-	// r.HandleFunc("/course/{courseid}", updateOneCourse).Methods("PUT")
-	// r.HandleFunc("/course/{courseid}", deleteOneCourse).Methods("DELETE")
-
-	// listen to port
-	// log.Fatal(http.ListenAndServeTLS(":4000", "cert.pem", "key.pem", r))
-
-	// var err error
-	// db, err := sql.Open("postgres", psqlInfo)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer db.Close()
-
-	// err = db.Ping()
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println("Successfully connected!")
-
-	// db.Query("SELECT name from Province;")
-	// fmt.Println("Here")
-	// getInitialData()
+	// Setting up of CORS and giving access
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:8080"},
 		AllowCredentials: true,
 	})
 
 	handler := c.Handler(r)
+	// listen to port
 	log.Fatal(http.ListenAndServe(":4000", handler))
 
 }
 
-// serve home route
-// func serveHome(w http.ResponseWriter, r *http.Request) {
-// 	w.Write([]byte("<h1>Welcome to API</h1>"))
-// }
-
+// Function to get the keywords when user enters them
 func getKeywords(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get Keywords")
 	w.Header().Set("Content=Type", "application/json")
-	// grab id from request
 	params := mux.Vars(r)
-	// // loop through db and find matchingn keyword then return the reponse
-	// for _, word := range words {
-	// 	if word == params["keywords"] {
-	// 		json.NewEncoder(w).Encode(word)
-	// 		return
-	// 	}
-	// }
 	fmt.Println("Keywords : ", params["keywords"])
 	json.NewEncoder(w).Encode(params["keywords"])
 }
+
+// Function to get the timeframe when user inputs
 func getTimeFrame(w http.ResponseWriter, r *http.Request) {
-	// fmt.Println("Get Time Frame")
-	// w.Header().Set("Content=Type", "application/json")
-	// grab id from request
 	var req requestDate
 	params := mux.Vars(r)
 	param := params["timeframe"]
@@ -189,6 +148,8 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(news)
 }
+
+// Function to get the user input location
 func getLocation(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get Location")
 	w.Header().Set("Content=Type", "application/json")
@@ -198,6 +159,8 @@ func getLocation(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Location : ", params["location"])
 	json.NewEncoder(w).Encode(params["location"])
 }
+
+// Function to allow user to post some data
 func PostData(w http.ResponseWriter, r *http.Request) {
 	// Allow CORS here By * or specific origin
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -221,6 +184,7 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 	// w.Write([]byte(temp))
 }
 
+// Function to get all the data from the user in the initialData struct and generate a query based on that data
 func getInitialData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")

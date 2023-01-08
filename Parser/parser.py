@@ -280,8 +280,11 @@ def main():
     li = []
     Parser = parser()
     # sc = SparkContext(appName="MyApp")
+    # Find spark library to automatically find and start the Spark instance that is installed on the system, 
+    # without having to manually specify the path to the Spark home directory
     import findspark
     findspark.init()
+    # Create a Spark Session
     spark = SparkSession.builder.appName("NAaaS").getOrCreate()
     print("Code ran till here 5")   
     print("SPARK: ", spark)
@@ -290,21 +293,27 @@ def main():
         # path = pathlib.PurePath(filename)
         # print("Code ran till here 0")   
         # fileName = path.name[:-4]
+    # Read the file as a pandas dataframe
     df = pd.read_csv(r"islamabad.csv", index_col=None, header=0, dtype="string")
         # print(df.to_markdown())
         # df['Creation_Date'] = path.parent.name
         # df['Link'] = "https://www.dawn.com/newspaper/" + fileName + "/" + path.parent.name
         # li.append(df)
         # df = pd.concat(li, axis=0, ignore_index=True)
+    # Convert the dataframe to a dictionary
     rows = df.to_dict('records')
     # rdd = df.rdd
+    # Convert it into rdd list of elements to run on multiple worker on spark
     rdd = spark.sparkContext.parallelize(rows)
         # # print(rdd.collect())
     # rdd = df.rdd
     print("Code ran till here 1")
+    # RUn the Parser.read function on all elements in the rdd
     result = rdd.map(Parser.read)
     print("Code ran till here 2")
+    # Print the result after implementing the function
     print(result.collect())
+    # Stop the Spark session
     spark.stop()
         # for i in range(len(df)):
         #     # print(list(df.loc[i])[5])
