@@ -197,7 +197,7 @@ CREATE TABLE NEWS(
    summary TEXT,
    details TEXT,
    link TEXT,
-   category, VARCHAR(20),
+   category VARCHAR(20),
    focus_time TIMESTAMP,
    focus_location VARCHAR(50),
    province VARCHAR(50),
@@ -230,3 +230,22 @@ CREATE TABLE NEWS(
 --    );
 
 
+-- Table to hold all the locations and their type to search for type when searching for NEWS
+CREATE TABLE Locations(
+   id serial,
+   name VARCHAR(50),
+   location_type VARCHAR(50)
+);
+
+-- Insert all entries from all tables into Locations table
+INSERT INTO Locations(name, location_type)
+select name, 'Province' from province;
+
+INSERT INTO Locations(name, location_type)
+select name, 'District' from district;
+
+INSERT INTO Locations(name, location_type)
+select name, 'Tehsil' from tehsil;
+
+INSERT INTO Locations(name, location_type)
+select name, 'Union_Council' from union_council;

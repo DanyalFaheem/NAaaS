@@ -109,18 +109,54 @@ func getTimeFrame(w http.ResponseWriter, r *http.Request) {
 		link           string
 		category       string
 		coordinates    string
+		location_type  string
 	)
 	var rows *sql.Rows
+	err = db.QueryRow("select location_type from locations where name= $1", req.Location).Scan(&location_type)
+	query := fmt.Sprintf("select distinct(n.header), n.focus_time::date,  n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates, t.coordinates) as coordinates from news as n left join tehsil as t on t.name = n.focus_location left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.%s = $1;", location_type)
+	query_time := fmt.Sprintf("select distinct(n.header), n.focus_time::date,  n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates, t.coordinates) as coordinates from news as n left join tehsil as t on t.name = n.focus_location left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.%s = $1 and n.focus_time::date between $2 and $3 ;", location_type)
 	if req.Location == "" {
 		if req.StartDate != "" && req.EndDate != "" {
-			rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
+			rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, p.coordinates as coordinates from news as n left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
 		}
 	} else if req.Location != "" && (req.EndDate == "" || req.StartDate == "") {
-		rows, err = db.Query("select distinct(n.header), n.focus_time::date,  n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.district = $1 ;", req.Location)
+		rows, err = db.Query(query, req.Location)
 	} else if req.Location != "" && req.EndDate != "" && req.StartDate != "" {
-		fmt.Println("THIS QUERY WAS RAN Here")
-		rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.district = $1 and n.focus_time::date between $2 and $3 ;", req.Location, req.StartDate, req.EndDate)
+		// fmt.Println("Query was run till here")
+		rows, err = db.Query(query_time, req.Location, req.StartDate, req.EndDate)
 	}
+	// if location_type == "Province" {
+	// 	if req.Location == "" {
+	// 		if req.StartDate != "" && req.EndDate != "" {
+	// 			rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, p.coordinates as coordinates from news as n left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
+	// 		}
+	// 	} else if req.Location != "" && (req.EndDate == "" || req.StartDate == "") {
+	// 		rows, err = db.Query(query, req.Location)
+	// 	} else if req.Location != "" && req.EndDate != "" && req.StartDate != "" {
+	// 		fmt.Println("Query was run till here")
+	// 		rows, err = db.Query(query_time, req.Location, req.StartDate, req.EndDate)
+	// 	}
+	// } else if location_type == "District" {
+	// 	if req.Location == "" {
+	// 		if req.StartDate != "" && req.EndDate != "" {
+	// 			rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
+	// 		}
+	// 	} else if req.Location != "" && (req.EndDate == "" || req.StartDate == "") {
+	// 		rows, err = db.Query("select distinct(n.header), n.focus_time::date,  n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.district = $1 ;", req.Location)
+	// 	} else if req.Location != "" && req.EndDate != "" && req.StartDate != "" {
+	// 		rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.district = $1 and n.focus_time::date between $2 and $3 ;", req.Location, req.StartDate, req.EndDate)
+	// 	}
+	// } else if location_type == "Tehsil" {
+	// 	if req.Location == "" {
+	// 		if req.StartDate != "" && req.EndDate != "" {
+	// 			rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.focus_time::date between $1 and $2 ;", req.StartDate, req.EndDate)
+	// 		}
+	// 	} else if req.Location != "" && (req.EndDate == "" || req.StartDate == "") {
+	// 		rows, err = db.Query("select distinct(n.header), n.focus_time::date,  n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.district = $1 ;", req.Location)
+	// 	} else if req.Location != "" && req.EndDate != "" && req.StartDate != "" {
+	// 		rows, err = db.Query("select distinct(n.header), n.focus_time::date, n.category, n.link, n.focus_location, concat (p.coordinates, d.coordinates) as coordinates from news as n left join district as d on d.name = n.focus_location left join province as p on p.name = n.focus_location where n.district = $1 and n.focus_time::date between $2 and $3 ;", req.Location, req.StartDate, req.EndDate)
+	// 	}
+	// }
 	if err != nil {
 		log.Fatal(err)
 
@@ -197,7 +233,7 @@ func getInitialData(w http.ResponseWriter, r *http.Request) {
 		startTime string
 		endTime   string
 	)
-	rows, err := db.Query("SELECT distinct(district) from news where district is not null;")
+	rows, err := db.Query("SELECT distinct(focus_location) from news where focus_location is not null;")
 	if err != nil {
 		log.Fatal(err)
 
