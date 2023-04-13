@@ -321,7 +321,7 @@ def main():
     # Run the information extractor function on each element of RDD
     result = rdd.map(Parser.informationExtractor)
     # Print final result
-    print(result.collect())
+    # print(result.collect())
 
     spark.stop()
 

@@ -63,24 +63,28 @@ class Tribune(Scrapper):
                     soup = BeautifulSoup(webpage, 'html.parser')
                     for story in soup.findAll('ul'):
                         for j in story.find_all('li'):
-                            a_tag = j.find('div',attrs={'class':'horiz-news3-caption'})
-                            if(a_tag !=None):
-                                start_index = i.find("/listing/") + len("/listing/")
-                                end_index = i.find("/", start_index)
-                                if start_index != -1 and end_index != -1:
-                                    word = i[start_index:end_index]
-                                Categories.append(word)
-                                Headers.append(a_tag.h2.text.strip())
-                                Summary.append(a_tag.p.text.strip())
-                                Links.append(a_tag.a['href'])
-                                detail,img = self.extract_readmore(
-                                   a_tag.a['href'])
-                                Read_more.append(detail)
-                                Pic_url.append(img)
+                            try:
+                                a_tag = j.find('div',attrs={'class':'horiz-news3-caption'})
+                                if(a_tag !=None):
+                                    start_index = i.find("/listing/") + len("/listing/")
+                                    end_index = i.find("/", start_index)
+                                    if start_index != -1 and end_index != -1:
+                                        word = i[start_index:end_index]
+                                    Categories.append(word)
+                                    Headers.append(a_tag.h2.text.strip())
+                                    Summary.append(a_tag.p.text.strip())
+                                    Links.append(a_tag.a['href'])
+                                    detail,img = self.extract_readmore(
+                                    a_tag.a['href'])
+                                    Read_more.append(detail)
+                                    Pic_url.append(img)
+                            except:
+                                continue
+                    Date = start_date.strftime("%Y-%m-%d")
                     
                     if (len(Headers)>0):
                         dictionary = {'Header': Headers,
-                                    'Summary': Summary, 'Detail': Read_more, 'Link': Links, 'Category': Categories, 'Pic_url':Pic_url}
+                                    'Summary': Summary, 'Detail': Read_more, 'Link': Links, 'Category': Categories, 'CreationDate': Date, 'Pic_url':Pic_url}
                         dataframe = pd.DataFrame(dictionary)
                         
                         if count1 < len(GC):

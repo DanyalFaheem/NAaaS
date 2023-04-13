@@ -18,7 +18,14 @@ import datefinder
 import numpy as np
 import csv
 import os
+from copy import deepcopy
 from timetag import TimeTag
+from dateparser.search import search_dates
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import NMF
+from sklearn.decomposition import LatentDirichletAllocation
+
 
 nlp = spacy.load('en_core_web_sm', disable=['ner', 'textcat'])
 
@@ -100,12 +107,59 @@ class parser():
         self.index = index
         self.Data_of_region = Data_of_region
 
+
+        # Define a function to preprocess the text
+    def preprocess_text(self, text):
+        # Tokenize the text
+        tokens = text.lower().split()
+
+        # Remove stopwords
+        stopwords = set(['a', 'an', 'the', 'and', 'but', 'to', 'of', 'at', 'in', 'on', 'with', 'for', 'by', 'from', 'said'])
+        tokens = [token for token in tokens if token not in stopwords]
+
+        # Join the tokens back into a string
+        preprocessed_text = ' '.join(tokens)
+
+        return preprocessed_text
+    
+    def Lda(self, articles, num_topics=1, num_words=1,max_df=0.90, min_df=1):
+        """Apply Non-negative Matrix Factorization to the articles and return the topics and weights"""
+        vectorizer = TfidfVectorizer(max_df=max_df, min_df=min_df,stop_words='english')
+        X = vectorizer.fit_transform(articles)
+        feature_names = vectorizer.get_feature_names_out()
+        lda = LatentDirichletAllocation(n_components=num_topics, max_iter=10, random_state=10).fit(X)
+        topics = []
+        for topic_idx, topic in enumerate(lda.components_):
+            topic_words = [feature_names[i] for i in topic.argsort()[:-num_words - 1:-1]]
+            topics.extend(topic_words)
+        return topics
+
+
+    def topic_model_nmf(self, articles, num_topics=1, num_words=1,max_df=0.90, min_df=1):
+        """Apply Non-negative Matrix Factorization to the articles and return the topics and weights"""
+        vectorizer = TfidfVectorizer(max_df=max_df, min_df=min_df,stop_words='english')
+        X = vectorizer.fit_transform(articles)
+        feature_names = vectorizer.get_feature_names_out()
+        nmf = NMF(n_components=num_topics, max_iter=1000, random_state=10).fit(X)
+        topics = []
+        for topic_idx, topic in enumerate(nmf.components_):
+            topic_words = [feature_names[i] for i in topic.argsort()[:-num_words - 1:-1]]
+            topics.extend(topic_words)
+        return topics
+    
+    def extract_topics(self, details):
+        topics_nmf = self.topic_model_nmf(list(self.preprocess_text(details).split(" ")), num_topics=3, num_words=3)
+        topics_lda = self.Lda(list(self.preprocess_text(details).split(" ")), num_topics=3, num_words=3)
+        topics = [topic for topic in topics_lda if topic in topics_nmf]
+        return topics
+
+
     def createTags(self, tags):
         tagValues = []
         newTags = []
         for tag in tags:
             try: 
-                tagValues.append(list(datefinder.find_dates(tag["value"]))[0])
+                tagValues.append(list(datefinder.find_dates(tag[0]))[0])
                 newTags.append(tag)
             except:
                 pass
@@ -113,7 +167,7 @@ class parser():
         newTags = [newTags[index] for index in indices]
         newtags = []
         for i in range(len(newTags)):
-            newtags.append(TimeTag(tagValues[i], newTags[i]["textType"], newTags[i]["start"], counts[i]))
+            newtags.append(TimeTag(newTags[i][1], counts[i]))
         return newtags
 
     # Function adds another element to the Timetags with the text type i.e header, summary or detail
@@ -238,48 +292,74 @@ class parser():
     # Our main focus time extraction function. Takes in a dataframe of news article and returns the focus location in a dictionary
     def Get_Time(self, data, timeData):
         tags = []
-        # Parse the header, summary and details individually
-        headerParse = sutime.parse(data[1], reference_date=data[6])
-        headerParse = self.addTextType(headerParse, "Header")
+        settings = {'PREFER_DAY_OF_MONTH': 'first', 'RELATIVE_BASE': datetime.strptime(data[6], "%Y-%m-%d")}
+        # timeData[data[0]] = dict()
+        # headerParse = list(datefinder.find_dates(data[1], index=True, source=True, first="month", base_date=datetime.datetime.strptime(data[6], "%Y-%m-%d")))
+        headers = data[1].split("\n")
+        # print(headers)
+        headerParse = [search_dates(header, settings=settings) for header in headers]
+        headerParse1 = search_dates(data[1], settings=settings)
+        headerParse.append(headerParse1)
+
+        summaries = data[2].split("\n")
+        # print(summaries)
+        summaryParse = [search_dates(summary, settings=settings) for summary in summaries]
+        # summaryParse = list(datefinder.find_dates(data[2], index=True, source=True, first="month", base_date=datetime.datetime.strptime(data[6], "%Y-%m-%d")))
         
-        summaryParse = sutime.parse(data[2], reference_date=data[6])
-        summaryParse = self.addTextType(summaryParse, "Summary")
-        #  Remove the publication date from the details so as to not interfere with our algorithm
+        summaryParse1 = search_dates(data[2], settings=settings)
+        summaryParse.append(summaryParse1)
+
+        # # headerParse = sutime.parse(data[1], reference_date=data[6])
+        # # headerParse = addTextType(headerParse, "Header")
+        
+        # # summaryParse = sutime.parse(data[2], reference_date=data[6])
+        # # summaryParse = addTextType(summaryParse, "Summary")
+        
         details = data[3]
         lines = details.split('\n')
         del lines[-2]
-        details = '\n'.join(lines)
-        detailsParse = sutime.parse(details, reference_date=data[6])
-        detailsParse = self.addTextType(detailsParse, "Details")
-        # Creat tags of all the elements and combine into one
-        
+        details = '\n'.join(lines)    
+        # print(lines)
+        detailsParse = [search_dates(detail1, settings=settings) for detail1 in lines]
+        # detailsParse = [item for sublist in detailsParse for item in sublist]
+        # detailsParse = list(datefinder.find_dates(details, index=True, source=True, first="month", base_date=datetime.datetime.strptime(data[6], "%Y-%m-%d")))
+        detailsParse1 = search_dates(details, settings=settings)
+        detailsParse.append(detailsParse1)
         tags = headerParse + summaryParse + detailsParse
-        try:
-            # Assign weights to tags
+        
+        # # # print(tags)
 
+        # timeData["tags"] = tags
+        tags = [tag for tag in tags if isinstance(tag, type(None)) == False]
+        tags = [item for sublist in tags for item in sublist]
+
+
+        try:
             tags = self.createTags(tags)
+        # # # print(tags)
             tags = sorted(tags, key=lambda x: x.weight, reverse=True)
-            # Use the highest weighted tag as focusTime
             timeData["focusTime"] = tags[0].date.date().strftime('%Y-%m-%d')
         except:
-            # If no tags found, assign creation date as focusTime
             timeData["focusTime"] = data[6]
         
-        # Create the rest of the dictionary using the text and tags of each
         timeData["CreationDate"] = data[6]
-        
+
         timeData["Header"] = dict()
         timeData["Header"]["Text"] = data[1]
-        timeData["Header"]["Tags"] = headerParse
+        # timeData["Header"]["Tags"] = headerParse
+        # # timeData["Header"]["Tags1"] = headerParse1
+
         
         timeData['Summary'] = dict()
         timeData['Summary']["Text"] = data[2]
-        timeData['Summary']["Tags"] = summaryParse
+        # timeData['Summary']["Tags"] = summaryParse
+        # # timeData['Summary']["Tags1"] = summaryParse1
         
         timeData['Details'] = dict()
         timeData['Details']["Text"] = details
-        timeData['Details']["Tags"] = detailsParse
-
+        # timeData['Details']["Tags"] = detailsParse
+        # timeData['Details']["Tags1"] = detailsParse1
+        
         timeData['Link'] = data[4]
         timeData['Category'] = data[5]
         return timeData
@@ -292,36 +372,38 @@ class parser():
 
 def main():
     # Instantiate SUTime and Parser
-    sutime = SUTime()
     li = []
+    jsonObject = []
     Parser = parser()
     # Read files one by one
-    for filename in glob.iglob(r'..\Scrapper\2022\2022-12-23\business.csv', recursive=True):
+    for filename in glob.iglob(r'..\Scrapper\Tribune\2023\**\*.csv', recursive=True):
         path = pathlib.PurePath(filename)
         fileName = path.name[:-4]
         df = pd.read_csv(filename, index_col=None, header=0, dtype="string")
-        df['Creation_Date'] = path.parent.name
-
+        # df['Creation_Date'] = path.parent.name
+        print("Now parsing", filename)
         li.append(df)
         df = pd.concat(li, axis=0, ignore_index=True)
         # Create a major dataframe
-        for i in range(len(df)):
-            results = dict()
-            # Extract focus location
+    for i in range(len(df)):
+        results = dict()
+        # Extract focus location
+        try:
             city = Parser.read(df.loc[i])   
             # Only extract focus time if location found
             if city != "null":
                 # Extract focus time and save to dictionary
-                results = Parser.Get_Time(list(df.loc[i]), sutime, results)
+                results = Parser.Get_Time(list(df.loc[i]), results)
                 results["focusLocation"] = city
-                resultsDF = pd.DataFrame(results)
-                resultsDF = resultsDF.transpose()
-                del resultsDF["Tags"]
-                resultsDF = resultsDF.transpose()
-                # Save dataframe to file
-                resultsDF.to_csv("Results.csv", mode='a', header=not os.path.exists("Results.csv"), index=False)
+                results["topics"] = Parser.extract_topics(df.iloc[i]["Detail"])
+                if "Pic_url" in df.iloc[i]:
+                    results["picture"] = df.iloc[i]["Pic_url"]
+                jsonObject.append(deepcopy(results))
             else:
                 continue
-
+        except:
+            pass
+    with open("results.json", "w") as file:
+        json.dump(jsonObject, file, indent=4)
 
 main()
