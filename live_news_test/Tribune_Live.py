@@ -108,7 +108,6 @@ class Tribune(Scrapper):
                             else:
                                 if minutes == -1:
                                     flag_1 = False
-                                    print(minutes,a_tag.span.text)
                                 else:
                                     news_holder[a_tag.h2.text] = minutes
                                     append_flag = True
