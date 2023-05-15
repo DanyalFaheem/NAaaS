@@ -18,6 +18,6 @@ After submitting the credentials following steps will take place
 2.	It will create boundaries around the selected location
 3.	News related to the location and fit in the time frame will plot over the map
 
-1.	Allow user to select key word to search specific (Targeted news) e.g. Robbery, Accidents, etc
+1.	Allow user to select key word to search specific (Targeted news) e.g Robbery, Accidents, etc
 2.	News can be extracted starting from the provincial level down to the Tehsils
 3.	Multiple options related to the location will be provided, allowing users to pinpoint the location in which they are interested in
