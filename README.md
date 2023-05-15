@@ -5,7 +5,7 @@ We provide you with a simple and easy way to get the data that is relevant to yo
 
 # How to Use our service
 
-At the top, you will find a nav bar that contains several tabs. You contact us or give your feedback.
+At the top, you will find a nav bar that contains several tabs. You contact us or give your feedback
 Three options are given at the top of the map
 1.	Start date
 2.	End date
