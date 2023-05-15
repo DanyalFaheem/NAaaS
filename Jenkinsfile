@@ -17,7 +17,7 @@ pipeline {
     }
     stage('Push') {
         steps {
-        sh 'sudo docker tag sentimentanalysis:latest danyalfaheem/my-spark-image'
+        sh 'sudo docker tag my-spark-image danyalfaheem/my-spark-image'
         sh 'sudo docker push danyalfaheem/my-spark-image'
         }
     }
