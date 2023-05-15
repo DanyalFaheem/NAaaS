@@ -10,8 +10,8 @@ pipeline {
         #!/bin/bash
         cd Spark/Updated
         ls
+        sudo docker build -t my-spark-image .
         """
-        sh 'sudo docker build -t my-spark-image .'
         }
     }
     stage('Login') {
@@ -27,7 +27,12 @@ pipeline {
     }
     stage('Execute') {
         steps {
-            sh 'sudo docker-compose up'
+        sh script:"""
+        #!/bin/bash
+        cd Spark/Updated
+        ls
+        sudo docker-compose up
+        """
         }
     }
   }
