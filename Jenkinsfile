@@ -6,6 +6,7 @@ pipeline {
     stages {
     stage('Build') {
         steps {
+        sh 'cd Spark/Updated/'
         sh 'sudo docker build -t my-spark-image .'
         }
     }
@@ -22,7 +23,7 @@ pipeline {
     }
     stage('Execute') {
         steps {
-            sh 'sudo docker run -d sentimentanalysis:latest'
+            sh 'sudo docker-compose up'
         }
     }
   }
