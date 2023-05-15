@@ -1,5 +1,5 @@
 # NAaaS
-News Analytics as a Service is an automated platform that displays NEWS plotted on a map of Pakistan that can be filtered based on time frame, location and key words. This is achieved by scrapping the NEWS and then extracting the focus time and focus location out of the NEWS documents and then plotting them according to the focus location.
+News Analytics as a Service is an automated platform that displays NEWS plotted on a map of Pakistan that can be filtered based on time frame, location and key words. This is achieved by scrapping the NEWS and then extracting the focus time and focus location out of the NEWS documents and then plotting them according to the focus location
 
 We provide you with a simple and easy way to get the data that is relevant to you. Human psychology says that anything that can be visualized has a far better understanding compared to the bulk of textual data. We found out; our service not just helps the data collector but also helps common news readers
 
