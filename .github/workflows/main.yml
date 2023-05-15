@@ -1,12 +1,12 @@
 
-name: Python app Main CI
+name: NAaaS CI/CD
 
 on:
   pull_request:
     branches: [main]
     types: [closed]
   push:
-    branches: [main, Faizan, Danyal]
+    branches: [main]
 
 
 jobs:
