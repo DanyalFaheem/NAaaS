@@ -6,7 +6,7 @@ pipeline {
     stages {
     stage('Build') {
         steps {
-        sh """
+        sh script:"""
         #!/bin/bash
         cd ./Spark/Updated
         """
