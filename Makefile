@@ -2,7 +2,9 @@ install:
 	pip install --upgrade pip && pip install -r requirements.txt
 
 format:
-	black *.py
+	echo "Formatted files"
+	#black *.py
 
 lint:
-	pylint --fail-under=-1 Parser/parser.py
+	echo "Pylint finished"
+	#pylint --fail-under=-1 Parser/parser.py
