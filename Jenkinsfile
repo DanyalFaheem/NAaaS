@@ -7,6 +7,7 @@ pipeline {
     stage('Build') {
         steps {
         sh 'cd Spark/Updated/'
+        sh 'ls'
         sh 'sudo docker build -t my-spark-image .'
         }
     }
