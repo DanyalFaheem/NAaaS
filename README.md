@@ -17,7 +17,6 @@ After submitting the credentials following steps will take place
 1.	Map will zoom into the selected region
 2.	It will create boundaries around the selected location
 3.	News related to the location and fit in the time frame will plot over the map
-# Coming soon
 
 1.	Allow user to select key word to search specific (Targeted news) e.g. Robbery, Accidents, etc.
 2.	News can be extracted starting from the provincial level down to the Tehsils
