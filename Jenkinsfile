@@ -6,7 +6,7 @@ pipeline {
     stages {
     stage('Build') {
         steps {
-        sh 'sudo docker build -t sentimentanalysis:latest .'
+        sh 'sudo docker build -t my-spark-image .'
         }
     }
     stage('Login') {
@@ -16,13 +16,13 @@ pipeline {
     }
     stage('Push') {
         steps {
-        sh 'sudo docker tag sentimentanalysis:latest danyalfaheem/sentimentanalysis:latest'
-        sh 'sudo docker push danyalfaheem/sentimentanalysis:latest'
+        sh 'sudo docker tag sentimentanalysis:latest danyalfaheem/my-spark-image'
+        sh 'sudo docker push danyalfaheem/my-spark-image'
         }
     }
     stage('Execute') {
         steps {
-            sh 'sudo docker run -d -p 5000:5000/tcp -p 5000:5000/udp sentimentanalysis:latest'
+            sh 'sudo docker run -d sentimentanalysis:latest'
         }
     }
   }
