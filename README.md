@@ -10,6 +10,7 @@ Three options are given at the top of the map
 1.	Start date
 2.	End date
 3.	Location
+4.	Topics
 
 You can select the time frame by simply clicking the calendar icon in the search bar. A calendar will open that will help you select the time frame. For locality, you will see a drop-down option. Simply click it and select your desired location
 After submitting the credentials following steps will take place
