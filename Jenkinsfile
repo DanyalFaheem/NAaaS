@@ -8,9 +8,9 @@ pipeline {
         steps {
         sh script:"""
         #!/bin/bash
-        cd ./Spark/Updated
+        cd Spark/Updated
+        ls
         """
-        sh 'ls'
         sh 'sudo docker build -t my-spark-image .'
         }
     }
