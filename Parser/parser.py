@@ -26,6 +26,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF
 from sklearn.decomposition import LatentDirichletAllocation
 
+from textblob import TextBlob
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
 
 nlp = spacy.load('en_core_web_sm', disable=['ner', 'textcat'])
 
@@ -152,6 +155,42 @@ class parser():
         topics_lda = self.Lda(list(self.preprocess_text(details).split(" ")), num_topics=3, num_words=3)
         topics = [topic for topic in topics_lda if topic in topics_nmf]
         return topics
+
+    def get_sentiment_tb(self, text):
+        """
+        This function takes a paragraph as string and returns the sentiment analysis 
+        on the scale of 0 to 1, where 0 means most negative and 1 means really good.
+        """
+        blob = TextBlob(text)
+        sentiment_score = blob.sentiment.polarity
+        normalized_score = (sentiment_score + 1) / 2  # Normalize the score to a range of 0 to 1
+        return normalized_score
+
+    def get_sentiment_nl(self, text):
+        """
+        This function takes a paragraph as string and returns the sentiment analysis 
+        on the scale of 0 to 1, where 0 means most negative and 1 means really good.
+        """
+        sid = SentimentIntensityAnalyzer()
+        sentiment_scores = sid.polarity_scores(text)
+        compound_score = sentiment_scores['compound']
+        normalized_score = (compound_score + 1) / 2  # Normalize the score to a range of 0 to 1
+        return normalized_score
+
+    def get_sentiment(self, text):
+        scoretb = self.get_sentiment_tb(text)
+        scorenl = self.get_sentiment_nl(text)
+        final_score = ((scorenl + scoretb)) / 2
+        # sentiment = ""
+        # if final_score >= 0.0 and final_score < 0.4:
+        #     sentiment = "negative"
+        # elif final_score >= 0.4 and final_score < 0.6:
+        #     sentiment = "neutral"
+        # elif final_score >= 0.6 and final_score <= 1.0:
+        #     sentiment = "positive"
+        # else:
+        #     sentiment = "null"
+        return final_score
 
 
     def createTags(self, tags):
@@ -376,7 +415,9 @@ def main():
     jsonObject = []
     Parser = parser()
     # Read files one by one
-    for filename in glob.iglob(r'..\Scrapper\Tribune\2023\**\*.csv', recursive=True):
+    for filename in glob.iglob(r'..\Scrapper\2023\**\*.csv', recursive=True):
+        # C:\Danyal\Work\FAST\Semester 8\Final Year Project - II\Project\NAaaS\Scrapper\Tribune\2023\2023-04-11\international.csv
+        # ..\Scrapper\Tribune\2023\**\*.csv
         path = pathlib.PurePath(filename)
         fileName = path.name[:-4]
         df = pd.read_csv(filename, index_col=None, header=0, dtype="string")
@@ -388,21 +429,19 @@ def main():
     for i in range(len(df)):
         results = dict()
         # Extract focus location
-        try:
-            city = Parser.read(df.loc[i])   
-            # Only extract focus time if location found
-            if city != "null":
-                # Extract focus time and save to dictionary
-                results = Parser.Get_Time(list(df.loc[i]), results)
-                results["focusLocation"] = city
-                results["topics"] = Parser.extract_topics(df.iloc[i]["Detail"])
-                if "Pic_url" in df.iloc[i]:
-                    results["picture"] = df.iloc[i]["Pic_url"]
-                jsonObject.append(deepcopy(results))
-            else:
-                continue
-        except:
-            pass
+        city = Parser.read(df.loc[i])
+        # Only extract focus time if location found
+        if city != "null":
+            # Extract focus time and save to dictionary
+            results = Parser.Get_Time(list(df.loc[i]), results)
+            results["focusLocation"] = city
+            results["topics"] = Parser.extract_topics(df.iloc[i]["Detail"])
+            results["sentiment"] = Parser.get_sentiment(df.iloc[i]["Header"])
+            if "Pic_url" in df.iloc[i]:
+                results["picture"] = df.iloc[i]["Pic_url"]
+            jsonObject.append(deepcopy(results))
+        else:
+            continue
     with open("results.json", "w") as file:
         json.dump(jsonObject, file, indent=4)
 

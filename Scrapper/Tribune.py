@@ -34,11 +34,13 @@ class Tribune(Scrapper):
         return Links, mdate
 
     def Scrap_Tribune(self, GC, MC):
-        today = date.today()   # Get today's date
-        yesterday = today - timedelta(days=2)   # Subtract one day from today's date
-        start_date = yesterday
-        end_date = start_date
+        file = open('start_date.pkl', 'rb')
+        start_date = load(file)
+        file.close()
+        end_date = date(2021, 1, 1)
+        delta = timedelta(days=1)
         while start_date >= end_date:
+            print(start_date.strftime("%Y-%m-%d"))
             self.Tribune_links, self.Previous_Date = self.Generate_Date_links_for_Tribune(
                 GC, MC, start_date)
             Previous_Date_str = self.Previous_Date.strftime('%Y-%m-%d')
@@ -109,6 +111,10 @@ class Tribune(Scrapper):
                             with open("jsons/"+path+"/"+"Scrapped.json", 'w') as json_file:
                                     json.dump(df_json, json_file)
                             count2 += 1 
+            start_date -= delta
+            file = open('start_date.pkl', 'wb')
+            dump(start_date, file)
+            file.close()
 
     def extract_readmore(self, link):
         detail = ""
@@ -118,9 +124,12 @@ class Tribune(Scrapper):
             for p in reading.find_all("p"):
                 detail += p.get_text()
                 detail += "\n"
-        div_tag = soup.find('div', class_='story-featuredimage')
-        img_tag = div_tag.find('div', {'class': 'featured-image-global'}).find('img')
-        data_src = img_tag.get('data-src')
+        try:
+            div_tag = soup.find('div', class_='story-featuredimage')
+            img_tag = div_tag.find('div', {'class': 'featured-image-global'}).find('img')
+            data_src = img_tag.get('data-src')
+        except:
+                data_src = ""
         return detail,data_src
 
 
