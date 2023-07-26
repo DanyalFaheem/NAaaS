@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y curl
 RUN apt install build-essential -y
 RUN apt install libpq-dev python-dev -y
 RUN pip install -r requirements.txt
+RUN python -m pip install -U pydantic spacy
 RUN python -m spacy download en_core_web_sm
 RUN [ "python", "-c", "import nltk; nltk.download('wordnet')" ]
-RUN [ "python", "-c", "import nltk; nltk.download('vader')" ]
+RUN [ "python", "-c", "import nltk; nltk.download('vader_lexicon')" ]
 RUN apt update -y
